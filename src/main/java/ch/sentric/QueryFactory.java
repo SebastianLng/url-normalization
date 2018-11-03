@@ -17,10 +17,9 @@ package ch.sentric;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.StringTokenizer;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -52,7 +51,7 @@ public class QueryFactory {
 	if (null == q || "".equalsIgnoreCase(q)) {
 	    return new Query();
 	}
-	final ArrayList<QueryKeyValuePair> list = new ArrayList<QueryKeyValuePair>(0);
+	final List<QueryKeyValuePair> list = new ArrayList<QueryKeyValuePair>(0);
 
 	ParserState state = ParserState.START;
 	final StringTokenizer tokenizer = new StringTokenizer(q, "=&", true);
@@ -108,22 +107,15 @@ public class QueryFactory {
 		break;
 	    }
 	}
-	CollectionUtils.filter(list, new Predicate() {
 
-	    @Override
-	    public boolean evaluate(final Object object) {
-		boolean allowedQueryParameter = true;
-		final QueryKeyValuePair queryKeyValuePair = (QueryKeyValuePair) object;
+	return new Query(list.stream().filter(qkv -> {
 		for (final String filter : filters) {
-		    if (queryKeyValuePair.getKey().startsWith(filter)) {
-			allowedQueryParameter = false;
+		    if (qkv.getKey().startsWith(filter)) {
+			return false;
 		    }
 		}
-		return allowedQueryParameter;
-	    }
-	});
-
-	return new Query(list, '&');
+		return true;
+	}).collect(Collectors.toList()), '&');
     }
 
     private enum ParserState {
