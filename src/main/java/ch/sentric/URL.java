@@ -21,8 +21,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 
-import org.apache.commons.lang3.StringUtils;
-
 /**
  * The url class.
  */
@@ -82,7 +80,7 @@ public class URL {
      */
     public URI getURI() throws URISyntaxException {
 	URI uri = null;
-	if (StringUtils.isNotBlank(getFragment())) {
+	if (isNotBlank(getFragment())) {
 	    uri = new URI(getUrlWithoutFragment());
 	} else {
 	    uri = new URI(getGivenInputUrl());
@@ -221,5 +219,9 @@ public class URL {
     @Override
     public String toString() {
 	return this.givenInputUrl;
-    }
+	}
+	
+	private boolean isNotBlank(String s) {
+		return s != null && !s.trim().isEmpty();
+	}
 }
