@@ -24,23 +24,25 @@ import org.junit.Test;
 public class PathTest {
     @Test
     public void testGetAsString() {
-	Assert.assertEquals("/hello/world", new Path("/hello/world").getAsString());
+        Assert.assertEquals("/hello/world", new Path("/hello/world").getAsString());
     }
 
     @Test
     public void getAsStringShouldRemoveJsession() {
-	Assert.assertEquals("/1270777-1779518.html", new Path("/1270777-1779518.html;jsessionid=9ADD207E33B1E66CE6121BC73AADB986").getAsString());
+        Assert.assertEquals("/1270777-1779518.html",
+                new Path("/1270777-1779518.html;jsessionid=9ADD207E33B1E66CE6121BC73AADB986").getAsString());
     }
 
     @Test
     public void getAsStringShouldReturnSemicolonSplittedPath() {
-	Assert.assertEquals("/wirtschaft/soziales/0;1518;769292;00.html", new Path("/wirtschaft/soziales/0;1518;769292;00.html").getAsString());
+        Assert.assertEquals("/wirtschaft/soziales/0;1518;769292;00.html",
+                new Path("/wirtschaft/soziales/0;1518;769292;00.html").getAsString());
     }
 
     @Test
     public void getAsStringShouldNotRemovePhpsess() {
-	// this is a query, not a path
-	Assert.assertEquals("/1270777-1779518.html?phpsessid=9ADD207E33B1E66CE6121BC73AADB986",
-		new Path("/1270777-1779518.html?phpsessid=9ADD207E33B1E66CE6121BC73AADB986").getAsString());
+        // this is a query, not a path
+        Assert.assertEquals("/1270777-1779518.html?phpsessid=9ADD207E33B1E66CE6121BC73AADB986",
+                new Path("/1270777-1779518.html?phpsessid=9ADD207E33B1E66CE6121BC73AADB986").getAsString());
     }
 }

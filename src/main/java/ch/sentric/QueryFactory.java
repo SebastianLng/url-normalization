@@ -31,94 +31,96 @@ import java.util.stream.Collectors;
  */
 public class QueryFactory {
 
-    /**
-     * URL query string filters to apply.
-     * 
-     * <ul>
-     * <li>WebTrends (WT.): see
-     * http://www.heureka.com/upload/AdministrationUsersGuide.pdf, Chapter 27
-     * <li>
-     * <li>Google Analytics (utm): see
-     * http://support.google.com/analytics/bin/answer.py?hl=en&answer=1033863</li>
-     * <li>Yahoo! (OV*, YS*):
-     * http://help.yahoo.com/l/de/yahoo/ysm/mss/manage/16897.html</li>
-     * </ul>
-     */
-    private static ArrayList<String> filters = new ArrayList<String>(Arrays.asList("utm", "WT.", "OVKEY", "YSMKEY", "OVRAW", "YSMRAW", "OVMTC", "YSMMTC", "OVADID", "YSMADID",
-	    "OVADID", "YSMADID", "OVKWID", "YSMKWID", "OVCAMPGID", "YSMCAMPGID", "OVADGRPID", "YSMADGRPID"));
+	/**
+	 * URL query string filters to apply.
+	 * 
+	 * <ul>
+	 * <li>WebTrends (WT.): see
+	 * http://www.heureka.com/upload/AdministrationUsersGuide.pdf, Chapter 27
+	 * <li>
+	 * <li>Google Analytics (utm): see
+	 * http://support.google.com/analytics/bin/answer.py?hl=en&answer=1033863</li>
+	 * <li>Yahoo! (OV*, YS*):
+	 * http://help.yahoo.com/l/de/yahoo/ysm/mss/manage/16897.html</li>
+	 * </ul>
+	 */
+	private static ArrayList<String> filters = new ArrayList<String>(
+			Arrays.asList("utm", "WT.", "OVKEY", "YSMKEY", "OVRAW", "YSMRAW", "OVMTC", "YSMMTC", "OVADID", "YSMADID",
+					"OVADID", "YSMADID", "OVKWID", "YSMKWID", "OVCAMPGID", "YSMCAMPGID", "OVADGRPID", "YSMADGRPID"));
 
-    public Query build(final String q) {
-	if (null == q || "".equalsIgnoreCase(q)) {
-	    return new Query();
+	public Query build(final String q) {
+		if (null == q || "".equalsIgnoreCase(q)) {
+			return new Query();
+		}
+		final List<QueryKeyValuePair> list = new ArrayList<QueryKeyValuePair>(0);
+
+		ParserState state = ParserState.START;
+		final StringTokenizer tokenizer = new StringTokenizer(q, "=&", true);
+		String key = null;
+		while (tokenizer.hasMoreTokens()) {
+			final String token = tokenizer.nextToken();
+
+			switch (state) {
+			case DELIMITER:
+				if (token.equals("&")) {
+					state = ParserState.KEY;
+				}
+				break;
+
+			case KEY:
+				if (!token.equals("=") && !token.equals("&") && !token.equalsIgnoreCase("PHPSESSID")
+						&& !token.equalsIgnoreCase("JSESSIONID")) {
+					key = token;
+					state = ParserState.EQUAL;
+				}
+				break;
+
+			case EQUAL:
+				if (token.equals("=")) {
+					state = ParserState.VALUE;
+				} else if (token.equals("&")) {
+					list.add(new QueryKeyValuePair(key, null));
+					state = ParserState.KEY;
+				}
+				break;
+
+			case VALUE:
+				if (!token.equals("=") && !token.equals("&")) {
+					if (token.contains(";jsessionid") || token.contains(";JSESSIONID")) {
+						list.add(new QueryKeyValuePair(key, token.substring(0, token.lastIndexOf(";"))));
+					} else {
+						list.add(new QueryKeyValuePair(key, token));
+					}
+					state = ParserState.DELIMITER;
+				} else if (token.equals("&")) {
+					list.add(new QueryKeyValuePair(key, null));
+					state = ParserState.KEY;
+				}
+				break;
+
+			case START:
+				if (!token.equalsIgnoreCase("PHPSESSID") && !token.equalsIgnoreCase("JSESSIONID")) {
+					key = token;
+					state = ParserState.EQUAL;
+				}
+				break;
+
+			default:
+				break;
+			}
+		}
+
+		return new Query(list.stream().filter(qkv -> {
+			for (final String filter : filters) {
+				if (qkv.getKey().startsWith(filter)) {
+					return false;
+				}
+			}
+			return true;
+		}).collect(Collectors.toList()), '&');
 	}
-	final List<QueryKeyValuePair> list = new ArrayList<QueryKeyValuePair>(0);
 
-	ParserState state = ParserState.START;
-	final StringTokenizer tokenizer = new StringTokenizer(q, "=&", true);
-	String key = null;
-	while (tokenizer.hasMoreTokens()) {
-	    final String token = tokenizer.nextToken();
-
-	    switch (state) {
-	    case DELIMITER:
-		if (token.equals("&")) {
-		    state = ParserState.KEY;
-		}
-		break;
-
-	    case KEY:
-		if (!token.equals("=") && !token.equals("&") && !token.equalsIgnoreCase("PHPSESSID") && !token.equalsIgnoreCase("JSESSIONID")) {
-		    key = token;
-		    state = ParserState.EQUAL;
-		}
-		break;
-
-	    case EQUAL:
-		if (token.equals("=")) {
-		    state = ParserState.VALUE;
-		} else if (token.equals("&")) {
-		    list.add(new QueryKeyValuePair(key, null));
-		    state = ParserState.KEY;
-		}
-		break;
-
-	    case VALUE:
-		if (!token.equals("=") && !token.equals("&")) {
-		    if (token.contains(";jsessionid") || token.contains(";JSESSIONID")) {
-			list.add(new QueryKeyValuePair(key, token.substring(0, token.lastIndexOf(";"))));
-		    } else {
-			list.add(new QueryKeyValuePair(key, token));
-		    }
-		    state = ParserState.DELIMITER;
-		} else if (token.equals("&")) {
-		    list.add(new QueryKeyValuePair(key, null));
-		    state = ParserState.KEY;
-		}
-		break;
-
-	    case START:
-		if (!token.equalsIgnoreCase("PHPSESSID") && !token.equalsIgnoreCase("JSESSIONID")) {
-		    key = token;
-		    state = ParserState.EQUAL;
-		}
-		break;
-
-	    default:
-		break;
-	    }
+	private enum ParserState {
+		KEY, VALUE, DELIMITER, EQUAL, START
 	}
-
-	return new Query(list.stream().filter(qkv -> {
-		for (final String filter : filters) {
-		    if (qkv.getKey().startsWith(filter)) {
-			return false;
-		    }
-		}
-		return true;
-	}).collect(Collectors.toList()), '&');
-    }
-
-    private enum ParserState {
-	KEY, VALUE, DELIMITER, EQUAL, START
-    }
 }

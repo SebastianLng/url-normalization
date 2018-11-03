@@ -21,62 +21,60 @@ import java.util.Objects;
  * A {@link Comparable} key value pair, representing a query.
  */
 class QueryKeyValuePair implements Comparable<QueryKeyValuePair> {
-    private final String key;
-    private final String value;
+	private final String key;
+	private final String value;
 
-    /**
-     * The constructor, initializing the object.
-     * 
-     * @param key
-     *            the key
-     * @param value
-     *            the value
-     */
-    public QueryKeyValuePair(final String key, final String value) {
-	this.key = key;
-	if (null == value) {
-	    this.value = "";
-	} else {
-	    this.value = value;
+	/**
+	 * The constructor, initializing the object.
+	 * 
+	 * @param key   the key
+	 * @param value the value
+	 */
+	public QueryKeyValuePair(final String key, final String value) {
+		this.key = key;
+		if (null == value) {
+			this.value = "";
+		} else {
+			this.value = value;
+		}
 	}
-    }
 
-    @Override
-    public int compareTo(final QueryKeyValuePair other) {
-	final int keyComparission = getKey().compareTo(other.getKey());
-	if (keyComparission != 0) {
-	    return keyComparission;
+	@Override
+	public int compareTo(final QueryKeyValuePair other) {
+		final int keyComparission = getKey().compareTo(other.getKey());
+		if (keyComparission != 0) {
+			return keyComparission;
+		}
+		return getValue().compareTo(other.getValue());
 	}
-	return getValue().compareTo(other.getValue());
-    }
 
-    @Override
-    public int hashCode() {
+	@Override
+	public int hashCode() {
 		return Objects.hash(key, value);
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-	if (obj == null) {
-	    return false;
-	}
-	if (obj == this) {
-	    return true;
-	}
-	if (obj.getClass() != getClass()) {
-	    return false;
 	}
 
-	final QueryKeyValuePair rhs = (QueryKeyValuePair) obj;
+	@Override
+	public boolean equals(final Object obj) {
+		if (obj == null) {
+			return false;
+		}
+		if (obj == this) {
+			return true;
+		}
+		if (obj.getClass() != getClass()) {
+			return false;
+		}
 
-	return Objects.equals(key, rhs.key) && Objects.equals(value, rhs.value);
-    }
+		final QueryKeyValuePair rhs = (QueryKeyValuePair) obj;
 
-    public String getKey() {
-	return key;
-    }
+		return Objects.equals(key, rhs.key) && Objects.equals(value, rhs.value);
+	}
 
-    public String getValue() {
-	return value;
-    }
+	public String getKey() {
+		return key;
+	}
+
+	public String getValue() {
+		return value;
+	}
 }
